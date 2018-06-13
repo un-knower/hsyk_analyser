@@ -62,7 +62,7 @@ object LoadDiseasesData2ES {
     import org.elasticsearch.spark._
     import com.neusoft.implicits._
     val customerDistribution = basicDF.join(diseaseDF, basicDF("CARD_NO") === diseaseDF("CARD_NO_D")).drop("CARD_NO_D").as[Customer]
-    customerDistribution.printSchema()
+
     customerDistribution.rdd
       .mapPartitions {
         customers =>
@@ -77,12 +77,6 @@ object LoadDiseasesData2ES {
           }
       }
       .saveJsonToEs(IndexDict.BASIC)
-
-
-    //    sparkSession.udf.register("diseasesAgg", DiseasesAgg)
-    //    customerDistribution.createOrReplaceTempView("customer_distribution")
-    //
-    //    sparkSession.sql(s"select diseasesAgg(DIAGNOSE) as DISEASES from customer_distribution group by DIAGNOSE").show(5)
 
   }
 }
