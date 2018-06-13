@@ -10,7 +10,7 @@ import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
 
 
-object LoadDiseasesData2ES {
+object CustomerDiseaseDistributionData2ES {
 
   def main(args: Array[String]): Unit = {
 
@@ -58,25 +58,15 @@ object LoadDiseasesData2ES {
     val basicFields = Array("CARD_NO", "NAME", "BIRTHDAY", "HOME", "HOME_TEL", "OPER_DATE")
     val basicDF = OracleUtil.getTableData(sparkSession)(OracleTables.BASIC_T, jdbcProps_diseases, basicFields).withColumnRenamed("OPER_DATE", "REGISTER_DATE").drop("RN")
 
-    import sparkSession.implicits._
-    import org.elasticsearch.spark._
-    import com.neusoft.implicits._
-    val customerDistribution = basicDF.join(diseaseDF, basicDF("CARD_NO") === diseaseDF("CARD_NO_D")).drop("CARD_NO_D").as[Customer]
+    val customerDistribution = basicDF.join(diseaseDF, basicDF("CARD_NO") === diseaseDF("CARD_NO_D")).drop("CARD_NO_D")
 
-    customerDistribution.rdd
-      .mapPartitions {
-        customers =>
-          val gson = new Gson()
-          customers.flatMap { customer =>
-            customer.diagnose.extractDiagnose().map {
-              diagnose =>
-                val newCustomer = customer.copy()
-                newCustomer.diagnose = diagnose
-                gson.toJson(newCustomer)
-            }
-          }
-      }
-      .saveJsonToEs(IndexDict.BASIC)
+    //    customerDistribution.rdd.groupBy(row=>row.getAs[String]("CARD_NO"))
+    sparkSession.udf.register("diseasesAgg", DiseasesAgg)
+    customerDistribution.createOrReplaceTempView("customer_distribution")
+
+    //    sparkSession.sql(s"select diseasesAgg(CARD_NO, NAME, BIRTHDAY, HOME, HOME_TEL, REGISTER_DATE, SEX, DIAGNOSE, OPER_DATE) as JSON from customer_distribution group by CARD_NO").show(5)
+
+    sparkSession.sql(s"select CARD_NO, NAME, BIRTHDAY, HOME, HOME_TEL, REGISTER_DATE, SEX, diseasesAgg(DIAGNOSE, OPER_DATE) as JSON from customer_distribution group by CARD_NO, NAME, BIRTHDAY, HOME, HOME_TEL, REGISTER_DATE, SEX").show(5)
 
   }
 }

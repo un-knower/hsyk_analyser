@@ -12,7 +12,7 @@ object OracleUtil {
     sparkSession.read.jdbc(jdbcURL, sql, jdbcProps).head.getAs[java.math.BigDecimal]("TOTAL").longValue.toString
   }
 
-  def getTableData(sparkSession: SparkSession)(tableName: String, jdbcProps: Properties, fields: Set[String] = Set()): DataFrame = {
+  def getTableData(sparkSession: SparkSession)(tableName: String, jdbcProps: Properties, fields: Array[String] = Array()): DataFrame = {
     val jdbcURL = jdbcProps.getProperty("url")
     var fields_Str = "t.*"
     if (fields.nonEmpty) fields_Str = fields.map(field => s"t.$field").mkString(", ")

@@ -13,17 +13,17 @@ object DiseasesAgg extends UserDefinedAggregateFunction {
 
   // 指定具体输入列的数据类型
   override def inputSchema: StructType = StructType(
-    StructField("CARD_NO", StringType) ::
-      StructField("NAME", StringType) ::
-      StructField("BIRTHDAY", StringType) ::
-      StructField("HOME", StringType) ::
-      StructField("HOME_TEL", StringType) ::
-      StructField("REGISTER_DATE", StringType) ::
-      StructField("SEX", StringType) ::
-      StructField("DIAGNOSE", StringType) ::
-      StructField("OPER_DATE", StringType) :: Nil)
+    //    StructField("CARD_NO", StringType) ::
+    //      StructField("NAME", StringType) ::
+    //      StructField("BIRTHDAY", StringType) ::
+    //      StructField("HOME", StringType) ::
+    //      StructField("HOME_TEL", StringType) ::
+    //      StructField("REGISTER_DATE", StringType) ::
+    //      StructField("SEX", StringType) ::
+    StructField("DIAGNOSE", StringType) ::
+      StructField("OPER_DATE", TimestampType) :: Nil)
 
-  // 在进行聚合操作的时候所要处理数据的结果类型
+  // 在进行聚合操作的时候buffer的数据类型
   override def bufferSchema: StructType = StructType(StructField("DISEASES", ArrayType(StructType(StructField("DIAGNOSE", StringType) :: StructField("OPER_DATE", DateType) :: Nil))) :: Nil)
 
   // UDAF函数计算的结果类型
@@ -37,7 +37,7 @@ object DiseasesAgg extends UserDefinedAggregateFunction {
 
   // 在进行聚合的时候，每当有新的值进来，对分组后的聚合如何进行计算
   override def update(buffer: MutableAggregationBuffer, input: Row): Unit = {
-    buffer(0) = buffer.getSeq(0) ++: input.getString(0).extractDiagnose().map(Diagnose(_, input.getAs[Timestamp]("OPER_DATE")))
+    buffer(0) = buffer.getSeq(0) ++: input.getString(0).extractDiagnose().map(Diagnose(_, input.getAs[Timestamp](1)))
   }
 
   // 最后在分布式节点进行Local Reduce完成后需要进行全局级别的Merge操作

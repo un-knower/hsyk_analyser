@@ -45,7 +45,7 @@ object LoadCustomerData2ES {
     jdbcProps_basic.put("fetchsize", "500")
 
 
-    val basicFields = Set("CARD_NO", "NAME", "BIRTHDAY", "HOME", "HOME_TEL", "OPER_DATE")
+    val basicFields = Array("CARD_NO", "NAME", "BIRTHDAY", "HOME", "HOME_TEL", "OPER_DATE")
     val basicDF = OracleUtil.getTableData(sparkSession)(OracleTables.BASIC_T, jdbcProps_basic, basicFields).withColumnRenamed("OPER_DATE", "REGISTER_DATE").drop("RN")
 
     import org.elasticsearch.spark._
