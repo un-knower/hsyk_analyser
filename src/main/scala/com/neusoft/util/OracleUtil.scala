@@ -17,7 +17,6 @@ object OracleUtil {
     var fields_Str = "t.*"
     if (fields.nonEmpty) fields_Str = fields.map(field => s"t.$field").mkString(", ")
     val sql = s"""(SELECT $fields_Str, rownum as RN FROM $tableName t)"""
-    println(sql)
     sparkSession.read.jdbc(jdbcURL, sql, jdbcProps)
   }
 }

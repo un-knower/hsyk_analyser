@@ -59,12 +59,12 @@ object DiseasesAgg extends UserDefinedAggregateFunction {
       // 初始化
       if (bufferMap.get("diseases").isEmpty) {
         val addressSeparator = AddressSeparator()
-        val address = input.getString(3)
+        val address = Option(input.getString(3)).getOrElse("").strFormat
         val (province, city, district, street) = addressSeparator.splitAddress(address)
         aggMap.put("card_no", input.getString(0))
-        aggMap.put("name", input.getString(1).strFormat)
+        aggMap.put("name", Option(input.getString(1)).getOrElse("").strFormat)
         aggMap.put("birthday", input.getString(2))
-        aggMap.put("home", address.strFormat)
+        aggMap.put("home", address)
         aggMap.put("province", province)
         aggMap.put("city", city)
         aggMap.put("district", district)
