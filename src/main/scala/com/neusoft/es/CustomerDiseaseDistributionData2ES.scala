@@ -2,7 +2,6 @@ package com.neusoft.es
 
 import java.util.Properties
 
-import com.google.gson.{Gson, JsonParser}
 import com.neusoft.udaf.DiseasesAgg
 import com.neusoft.util.{OracleTables, OracleUtil}
 import org.apache.spark.SparkConf
