@@ -29,7 +29,7 @@ class AddressSeparator(val similarity_threshold: Double = 0.5) extends Serializa
     * @return 沈阳市铁西区滑翔小区
     */
   private def removeDuplicate(address: String): String = {
-    if (address == null) ""
+    if (address == null || address == "") ""
     else {
       NLPTokenizer.ANALYZER.segment(address).toArray(Array[String]()).distinct.reduce(_ + _)
     }
