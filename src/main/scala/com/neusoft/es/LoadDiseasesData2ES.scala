@@ -76,7 +76,7 @@ object LoadDiseasesData2ES {
             }
           }
       }
-      .saveJsonToEs(IndexDict.BASIC)
+      .saveJsonToEs(IndexDict.CUSTOMER_BASIC)
 
   }
 }

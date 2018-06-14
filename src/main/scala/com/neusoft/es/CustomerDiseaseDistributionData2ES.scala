@@ -2,8 +2,7 @@ package com.neusoft.es
 
 import java.util.Properties
 
-import com.google.gson.Gson
-import com.neusoft.extension.Customer
+import com.google.gson.{Gson, JsonParser}
 import com.neusoft.udaf.DiseasesAgg
 import com.neusoft.util.{OracleTables, OracleUtil}
 import org.apache.spark.SparkConf
@@ -47,6 +46,8 @@ object CustomerDiseaseDistributionData2ES {
     val diseaseFields = Array("CARD_NO", "SEX", "DIAGNOSE", "OPER_DATE")
     val diseaseDF = OracleUtil.getTableData(sparkSession)(OracleTables.DISEASE_T, jdbcProps_diseases, diseaseFields).withColumnRenamed("CARD_NO", "CARD_NO_D").drop("RN")
 
+    println(s"Disease Table Size = ${diseaseDF.count()}")
+
     // val deseases = diseaseDF.filter(diseaseDF("IS_VALID") === "1")
 
     /* ================= 读取客户基本信息信息表 ================= */
@@ -58,15 +59,23 @@ object CustomerDiseaseDistributionData2ES {
     val basicFields = Array("CARD_NO", "NAME", "BIRTHDAY", "HOME", "HOME_TEL", "OPER_DATE")
     val basicDF = OracleUtil.getTableData(sparkSession)(OracleTables.BASIC_T, jdbcProps_diseases, basicFields).withColumnRenamed("OPER_DATE", "REGISTER_DATE").drop("RN")
 
+    println(s"Cutomer Basic Table Size = ${basicDF.count()}")
+
+    /* ================= 表连接 ================= */
     val customerDistribution = basicDF.join(diseaseDF, basicDF("CARD_NO") === diseaseDF("CARD_NO_D")).drop("CARD_NO_D")
 
-    //    customerDistribution.rdd.groupBy(row=>row.getAs[String]("CARD_NO"))
+    println(s"customerDistribution Table Size = ${customerDistribution.count()}")
+
     sparkSession.udf.register("diseasesAgg", DiseasesAgg)
     customerDistribution.createOrReplaceTempView("customer_distribution")
 
-    //    sparkSession.sql(s"select diseasesAgg(CARD_NO, NAME, BIRTHDAY, HOME, HOME_TEL, REGISTER_DATE, SEX, DIAGNOSE, OPER_DATE) as JSON from customer_distribution group by CARD_NO").show(5)
+    import org.elasticsearch.spark._
 
-    sparkSession.sql(s"select CARD_NO, NAME, BIRTHDAY, HOME, HOME_TEL, REGISTER_DATE, SEX, diseasesAgg(DIAGNOSE, OPER_DATE) as JSON from customer_distribution group by CARD_NO, NAME, BIRTHDAY, HOME, HOME_TEL, REGISTER_DATE, SEX").show(5)
+    val jsonDF = sparkSession.sql(s"select diseasesAgg(CARD_NO, NAME, BIRTHDAY, HOME, HOME_TEL, REGISTER_DATE, SEX, DIAGNOSE, OPER_DATE) as JSON from customer_distribution group by CARD_NO")
+    println(s"jsonDF Table Size = ${jsonDF.count()}")
+    //    jsonDF.rdd.take(1).map(row => println(row.getAs[String]("JSON")))
+
+    jsonDF.rdd.map(row => row.getAs[String]("JSON")).saveJsonToEs(IndexDict.DISEASE_DISTRIBUTION)
 
   }
 }
