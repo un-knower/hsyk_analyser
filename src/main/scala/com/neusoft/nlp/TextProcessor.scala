@@ -1,12 +1,12 @@
 /*
  * Create by ZhangQiang 2018/4/25
  */
-package com.neusoft.util
+package com.neusoft.nlp
 
 /**
   * Create by ZhangQiang 2018/4/25 13:08
   */
-object TextUtil {
+object TextProcessor {
   /**
     * 获取两个字符串的利文斯顿距离
     *

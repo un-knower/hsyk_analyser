@@ -5,7 +5,7 @@ import java.io.{BufferedReader, InputStreamReader}
 import com.google.gson.JsonParser
 import com.hankcs.hanlp.tokenizer.NLPTokenizer
 import com.neusoft.nlp.AddressSeparator.TreeNode
-import com.neusoft.util.TextUtil
+import TextProcessor
 
 import scala.collection.{Traversable, mutable}
 
@@ -74,8 +74,8 @@ class AddressSeparator(val similarity_threshold: Double = 0.5) extends Serializa
                 // 别名相似度
                 var maxAliasSimilarity: Double = 0
                 val addressAlias = candidateAddressNode.addressAlias
-                if (addressAlias.nonEmpty) maxAliasSimilarity = addressAlias.map(TextUtil.getLevenshteinSimilarity(processedWord, _)).max
-                val addressNameSimilarity: Double = TextUtil.getLevenshteinSimilarity(processedWord, candidateAddressNode.addressName)
+                if (addressAlias.nonEmpty) maxAliasSimilarity = addressAlias.map(TextProcessor.getLevenshteinSimilarity(processedWord, _)).max
+                val addressNameSimilarity: Double = TextProcessor.getLevenshteinSimilarity(processedWord, candidateAddressNode.addressName)
                 (candidateAddressNode, Math.max(maxAliasSimilarity, addressNameSimilarity))
               }
                 // 取最高相似度，作为该候选节点的权重
