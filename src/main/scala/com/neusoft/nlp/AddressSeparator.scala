@@ -5,7 +5,6 @@ import java.io.{BufferedReader, InputStreamReader}
 import com.google.gson.JsonParser
 import com.hankcs.hanlp.tokenizer.NLPTokenizer
 import com.neusoft.nlp.AddressSeparator.TreeNode
-import TextProcessor
 
 import scala.collection.{Traversable, mutable}
 
