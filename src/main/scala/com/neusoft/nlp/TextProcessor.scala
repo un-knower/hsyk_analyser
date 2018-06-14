@@ -1,6 +1,3 @@
-/*
- * Create by ZhangQiang 2018/4/25
- */
 package com.neusoft.nlp
 
 /**
