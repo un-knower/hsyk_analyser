@@ -69,7 +69,7 @@ object DiseasesAgg extends UserDefinedAggregateFunction {
         aggMap.put("city", city)
         aggMap.put("district", district)
         aggMap.put("street", street)
-        aggMap.put("home_tel", input.getString(4))
+        aggMap.put("home_tel", Option(input.getString(4)).getOrElse("").strFormat)
         aggMap.put("register_date", input.getString(5))
         aggMap.put("sex", input.getString(6))
         aggMap.put("diseases", gson.toJson(diseases))
