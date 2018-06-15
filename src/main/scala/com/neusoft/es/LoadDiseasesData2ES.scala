@@ -4,7 +4,6 @@ import java.util.Properties
 
 import com.google.gson.Gson
 import com.neusoft.extension.Customer
-import com.neusoft.udaf.DiseasesAgg
 import com.neusoft.util.{OracleTables, OracleUtil}
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession

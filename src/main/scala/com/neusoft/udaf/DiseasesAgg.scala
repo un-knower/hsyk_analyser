@@ -1,5 +1,7 @@
 package com.neusoft.udaf
 
+import java.text.SimpleDateFormat
+
 import scala.collection.JavaConverters._
 import com.google.gson.Gson
 import org.apache.spark.sql.Row
@@ -48,10 +50,19 @@ object DiseasesAgg extends UserDefinedAggregateFunction {
     val diagnose = input.getString(7)
 
     if (diagnose != null) {
+      val sdf = new SimpleDateFormat("yyyy-MM-dd")
+      val operate_date = input.getString(8)
+      val birthday = input.getString(2)
       // 拆分疾病字段
       val diseases: Array[JavaMap[String, String]] = diagnose
         .extractDiagnose()
-        .map { diagnose => Map("diagnose" -> diagnose, "oper_date" -> input.getString(8)).asJava }
+        .map { diagnose => Map("diagnose" -> diagnose, "oper_date" -> operate_date).asJava }
+
+      val age: Long = (sdf.parse(operate_date).getTime - sdf.parse(birthday).getTime) / (365 * 24 * 60 * 60 * 1000)
+      val diseases_nested: Array[JavaMap[String, String]] = diagnose
+        .extractDiagnose()
+        .map { diagnose => Map("diagnose" -> diagnose, "oper_date" -> operate_date, "age" -> age.toString).asJava }
+
       val gson = new Gson()
       val bufferMap = buffer.getMap[String, String](0)
       // 用于存放聚合后的数据
@@ -63,7 +74,7 @@ object DiseasesAgg extends UserDefinedAggregateFunction {
         val (province, city, district, street) = addressSeparator.splitAddress(address)
         aggMap.put("card_no", input.getString(0))
         aggMap.put("name", Option(input.getString(1)).getOrElse("").strFormat)
-        aggMap.put("birthday", input.getString(2))
+        aggMap.put("birthday", birthday)
         aggMap.put("home", address)
         aggMap.put("province", province)
         aggMap.put("city", city)
@@ -73,10 +84,13 @@ object DiseasesAgg extends UserDefinedAggregateFunction {
         aggMap.put("register_date", input.getString(5))
         aggMap.put("sex", input.getString(6))
         aggMap.put("diseases", gson.toJson(diseases))
+        aggMap.put("diseases_nested", gson.toJson(diseases_nested))
       } else {
         aggMap ++= bufferMap
         val aggDiseases: Array[JavaMap[String, String]] = gson.fromJson(aggMap("diseases"), classOf[Array[JavaMap[String, String]]]) ++: diseases
+        val aggDiseases_nested: Array[JavaMap[String, String]] = gson.fromJson(aggMap("diseases_nested"), classOf[Array[JavaMap[String, String]]]) ++: diseases_nested
         aggMap.put("diseases", gson.toJson(aggDiseases))
+        aggMap.put("diseases_nested", gson.toJson(aggDiseases_nested))
       }
 
       buffer(0) = aggMap.toMap
